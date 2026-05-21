@@ -1,0 +1,69 @@
+.main-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1A3A5C;
+    margin-bottom: 0;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    background: linear-gradient(90deg, #1A3A5C 0%, #2E86C1 100%);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+    font-size: 1.05rem;
+}
+
+.status-box {
+    background: #e8f5e9;
+    border-left: 4px solid #27AE60;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.warn-box {
+    background: #fff3e0;
+    border-left: 4px solid #F39C12;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.info-card {
+    background: #f0f7ff;
+    border-left: 4px solid #2E86C1;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.welcome-box {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid #e0e0e0;
+    margin: 1rem 0;
+}
+
+div[data-testid="stDataFrame"] {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+div[data-testid="metric-container"] {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.8rem;
+    border-left: 3px solid #2E86C1;
+}
