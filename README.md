@@ -1,6 +1,6 @@
 # 🎯 Evaluación Final — Minería de Datos
 
-App visual con Streamlit para análisis completo de datos: segmentación, clasificación y evaluación de modelos. 100% automática — solo sube tu CSV.
+App Streamlit que **fusiona** los CSV de `data/` (p. ej. student-mat + student-por) y produce **un solo informe** con todo el pipeline del examen.
 
 ---
 
@@ -41,10 +41,10 @@ Abre http://localhost:8501 en tu navegador.
 
 ## 📋 Flujo de uso
 
-1. Sube tu CSV en el sidebar izquierdo
-2. Ajusta parámetros si deseas (test por defecto 20%, validación sobre el bloque de entrenamiento)
+1. Copia los **2 CSV del ingeniero** en la carpeta `data/` (ver `data/README.md`)
+2. Opcional: súbelos también desde el sidebar (acepta varios archivos)
 3. Haz clic en **EJECUTAR ANÁLISIS**
-4. El sistema detecta automáticamente separador, columna objetivo y clase positiva
+4. Revisa el **informe único** (todos los registros fusionados)
 
 **Partición por defecto:** 80% desarrollo (entrenamiento + validación) y 20% prueba final, sin fuga de información (imputación, encoding y escalado solo en train).
 

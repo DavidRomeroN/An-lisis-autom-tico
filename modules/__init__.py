@@ -1,5 +1,7 @@
 from .detector       import load_dataset
+from .datasets       import list_bundled_csv, load_unified, load_all_sources, DATA_DIR
 from .preprocessing  import encode_features, split_data, scale_data, prepare_dataset
+from .pipeline       import run_full_pipeline
 from .baseline       import train_baseline, evaluate_baseline
 from .clustering     import (build_cluster_matrix, run_kmeans_sweep,
                               fit_kmeans_final, fit_hierarchical,

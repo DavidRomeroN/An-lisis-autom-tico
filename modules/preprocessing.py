@@ -13,30 +13,17 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
+from .cleaning import full_clean
+from .detector import build_binary_target, GRADE_COLUMNS
+
 RANDOM_STATE = 42
 DEFAULT_TEST_SIZE = 0.20
 DEFAULT_VAL_FRAC_OF_TRAIN = 0.15
 
 
-def clean_dataframe(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
-    """Limpieza básica aplicada antes de particionar."""
-    df = df.copy()
-    df = df.drop_duplicates()
-
-    drop_cols = []
-    for col in df.columns:
-        if col == target_col:
-            continue
-        nunique = df[col].nunique(dropna=False)
-        if nunique <= 1:
-            drop_cols.append(col)
-        elif nunique >= 0.95 * len(df):
-            drop_cols.append(col)
-
-    if drop_cols:
-        df = df.drop(columns=drop_cols)
-
-    return df
+def clean_dataframe(df: pd.DataFrame, target_col: str) -> tuple[pd.DataFrame, dict]:
+    """Limpieza completa antes de particionar."""
+    return full_clean(df, target_col)
 
 
 def _column_types(df: pd.DataFrame, target_col: str) -> tuple[list, list]:
@@ -51,21 +38,15 @@ def _column_types(df: pd.DataFrame, target_col: str) -> tuple[list, list]:
     return num_cols, cat_cols
 
 
-def _build_y(df: pd.DataFrame, target_col: str, positive_class) -> pd.Series:
-    series = df[target_col]
-    if series.dtype == object:
-        pos_norm = str(positive_class).strip().lower()
-        y = series.astype(str).str.strip().str.lower().eq(pos_norm).astype(int)
-    else:
-        y = (series == positive_class).astype(int)
-
+def _build_y(df: pd.DataFrame, target_col: str, positive_class) -> tuple:
+    """Retorna (y, target_description)."""
+    y, _, desc = build_binary_target(df, target_col, positive_class)
     if y.nunique() < 2:
-        vals = series.dropna().unique()
-        if len(vals) >= 2:
-            minority = series.value_counts().index[-1]
-            y = (series == minority).astype(int)
-
-    return y
+        raise ValueError(
+            f"La columna '{target_col}' no genera dos clases. "
+            "Elige otra columna objetivo en el dataset."
+        )
+    return y, desc
 
 
 def _impute_frame(df: pd.DataFrame, num_cols: list, cat_cols: list,
@@ -123,11 +104,22 @@ def prepare_dataset(df: pd.DataFrame, target_col: str, positive_class,
 
     Por defecto: 20% test; validación = val_frac_of_train del bloque de desarrollo.
     """
-    df = clean_dataframe(df, target_col)
+    df, clean_report = clean_dataframe(df, target_col)
     num_cols, cat_cols = _column_types(df, target_col)
-    y = _build_y(df, target_col, positive_class)
+    y, target_desc = _build_y(df, target_col, positive_class)
 
     feature_df = df.drop(columns=[target_col])
+
+    # Evitar leakage: G1/G2 predicen G3 (Student Performance)
+    if target_col.lower() in GRADE_COLUMNS:
+        leak = [
+            c for c in feature_df.columns
+            if c.lower() in GRADE_COLUMNS and c.lower() != target_col.lower()
+        ]
+        if leak:
+            feature_df = feature_df.drop(columns=leak)
+            clean_report["notas_previas_excluidas"] = leak
+
     min_class = y.value_counts().min()
     use_stratify = min_class >= 6
 
@@ -180,6 +172,8 @@ def prepare_dataset(df: pd.DataFrame, target_col: str, positive_class,
         "pct_val": pct(len(X_val)),
         "pct_test": pct(len(X_test)),
         "pct_dev": pct(len(X_train) + len(X_val)),
+        "clean_report": clean_report,
+        "target_description": target_desc,
     }
 
 
@@ -188,9 +182,9 @@ def encode_features(df: pd.DataFrame, target_col: str, positive_class) -> tuple:
     Compatibilidad: prepara sin particionar (solo para vista previa).
     La app debe usar prepare_dataset para el pipeline real.
     """
-    df = clean_dataframe(df, target_col)
+    df, _ = clean_dataframe(df, target_col)
     num_cols, cat_cols = _column_types(df, target_col)
-    y = _build_y(df, target_col, positive_class)
+    y, _ = _build_y(df, target_col, positive_class)
     X_raw = df.drop(columns=[target_col])
     num_stats, cat_stats = _fit_imputation_stats(X_raw, num_cols, cat_cols)
     X_raw = _impute_frame(X_raw, num_cols, cat_cols, num_stats, cat_stats)
